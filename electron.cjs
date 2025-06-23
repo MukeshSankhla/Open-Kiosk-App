@@ -4,21 +4,19 @@ const isDev = !app.isPackaged;
 
 function createWindow() {
   const win = new BrowserWindow({
-    fullscreen: true,         // Launch in fullscreen
-    frame: false,             // Removes the top bar (title bar and borders)
-    kiosk: true,              // Locks the app in fullscreen mode (even disables ALT+F4, ESC, etc. on Windows)
+    fullscreen: true,
+    frame: false,
+    kiosk: true,
     webPreferences: {
       contextIsolation: true
     }
   });
 
-  const indexPath = isDev
-    ? 'http://localhost:8080'
-    : path.join(__dirname, 'dist/index.html');
-
   if (isDev) {
-    win.loadURL(indexPath);
+    win.loadURL('http://localhost:8080');
   } else {
+    // 🔥 Correct path resolution
+    const indexPath = path.join(__dirname, 'dist', 'index.html');
     win.loadFile(indexPath);
   }
 }
