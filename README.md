@@ -120,6 +120,26 @@ An open-source, complete hardware + software kiosk solution designed for retail 
 4. **Print Receipt**: Automatic thermal printing (if configured)
 5. **Save Order**: All transactions stored in database
 
+graph TD
+    A[User Interface (React App)] -->|Adds Product| B[Firebase Database]
+    A -->|Completes Order| B
+    A -->|Views Reports/History| B
+    A -->|Edits Product| B
+
+    A -->|Submits Cart as JSON| C[ESP32 Microcontroller]
+    C -->|Deserializes JSON| D[Thermal Printer]
+    D -->|Prints Receipt| E[Printed Bill]
+
+    A --> F[Local Config]
+    F -->|Startup Config| A
+    F -->|Stores Firebase Keys, Printer Settings, etc.| A
+
+    style A fill:#E3F2FD,stroke:#2196F3
+    style B fill:#F1F8E9,stroke:#8BC34A
+    style C fill:#FFF3E0,stroke:#FF9800
+    style D fill:#FFEBEE,stroke:#F44336
+    style F fill:#F3E5F5,stroke:#9C27B0
+
 ### Printing System
 - **Primary**: ESP32 receives JSON data via UART → Commands thermal printer
 - **Fallback**: Native system printer integration
