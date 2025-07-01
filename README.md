@@ -1,5 +1,5 @@
 # Open Kiosk 🏪
-
+![Open Kiosk Demo](https://github.com/MukeshSankhla/Open-Kiosk/blob/main/images/GPH.gif)
 An open-source, complete hardware + software kiosk solution designed for retail stores. Built with modern web technologies and integrated hardware components for a seamless point-of-sale experience.
 
 ## 🌟 Features
