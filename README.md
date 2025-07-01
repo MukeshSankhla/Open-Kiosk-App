@@ -27,14 +27,6 @@ An open-source, complete hardware + software kiosk solution designed for retail 
 - **Touch Screen**: Interactive user interface
 - **Custom Enclosure**: 3D printed compact design
 
-## 🛠️ Hardware Components
-
-- **LattePanda MU** - Main processing unit
-- **Seeed Xiao ESP32 S3** - Printer controller
-- **Thermal Printer** - Receipt printing
-- **Touch Screen Display** - User interface
-- **Custom 3D Printed Enclosure** - Compact housing
-
 ## 💻 Technology Stack
 
 - **Frontend**: React + Vite + Tailwind CSS
@@ -120,62 +112,6 @@ An open-source, complete hardware + software kiosk solution designed for retail 
 4. **Print Receipt**: Automatic thermal printing (if configured)
 5. **Save Order**: All transactions stored in database
 
-graph TD
-    A[User Interface (React App)] -->|Adds Product| B[Firebase Database]
-    A -->|Completes Order| B
-    A -->|Views Reports/History| B
-    A -->|Edits Product| B
-
-    A -->|Submits Cart as JSON| C[ESP32 Microcontroller]
-    C -->|Deserializes JSON| D[Thermal Printer]
-    D -->|Prints Receipt| E[Printed Bill]
-
-    A --> F[Local Config]
-    F -->|Startup Config| A
-    F -->|Stores Firebase Keys, Printer Settings, etc.| A
-
-    style A fill:#E3F2FD,stroke:#2196F3
-    style B fill:#F1F8E9,stroke:#8BC34A
-    style C fill:#FFF3E0,stroke:#FF9800
-    style D fill:#FFEBEE,stroke:#F44336
-    style F fill:#F3E5F5,stroke:#9C27B0
-
-### Printing System
-- **Primary**: ESP32 receives JSON data via UART → Commands thermal printer
-- **Fallback**: Native system printer integration
-- **Admin Control**: Toggle between thermal and system printing
-
-### Data Management
-- **Local Storage**: App runs entirely offline
-- **Cloud Backup**: Firebase integration for data persistence
-- **Export Options**: CSV reports for accounting software
-
-## 🔧 Admin Features
-
-### Dashboard
-- Today's total orders and revenue
-- Quick access to all management functions
-- Real-time statistics display
-
-### Product Management
-- Add/edit/delete products
-- Organize with searchable tags
-- Price management and updates
-- Inventory tracking
-
-### Reports & Analytics
-- **Daily Reports**: Automatic daily sales summaries
-- **Custom Timeframe**: Generate reports for any date range
-- **CSV Export**: Compatible with spreadsheet applications
-- **Order History**: Complete transaction log with filters
-
-### Settings Panel
-- **Printer Configuration**: COM port, thermal printer toggle
-- **Tax Settings**: Update tax rates and ID numbers
-- **Currency Selection**: Multi-currency support
-- **Store Information**: Update business details
-- **Firebase Settings**: Modify database connections
-
 ## 🎯 Target Users
 
 - **Small Retail Stores**: Independent shops and boutiques
@@ -200,40 +136,10 @@ graph TD
 - **Historical Data**: Complete order archive with search
 
 ## 🤝 Contributing
-
 We welcome contributions! This is an open-source project designed to help small businesses worldwide.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📋 Requirements
-
-### Software
-- Node.js (for development)
-- Python (for packaged version)
-- Modern web browser
-- Google Firebase account (free tier)
-
-### Hardware (for complete kiosk)
-- LattePanda MU or compatible PC
-- Seeed Xiao ESP32 S3
-- Thermal printer (58mm/80mm compatible)
-- Touch screen display
-- 3D printer (for custom enclosure)
-
-## 📞 Support
-
-- **Documentation**: Comprehensive setup guide included
-- **Hardware Guide**: Complete build instructions provided
-- **Software Setup**: Step-by-step configuration walkthrough
-- **Community**: Open for questions and contributions
-
 ## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the MIT License.
 
 ## 🎉 Why Open Kiosk?
 
