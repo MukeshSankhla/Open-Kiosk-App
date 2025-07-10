@@ -26,6 +26,8 @@ const ProductForm = ({ onSubmit, initialProduct }: ProductFormProps) => {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialProduct?.tags || []);
   const [inStock, setInStock] = useState(initialProduct?.inStock ?? true);
+  const [stock, setStock] = useState(initialProduct?.stock || 0);
+  const [minStock, setMinStock] = useState(initialProduct?.minStock || 5);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +38,9 @@ const ProductForm = ({ onSubmit, initialProduct }: ProductFormProps) => {
       image,
       category,
       tags,
-      inStock
+      inStock: stock > 0,
+      stock,
+      minStock
     });
     
     // Reset form if not editing
@@ -49,6 +53,8 @@ const ProductForm = ({ onSubmit, initialProduct }: ProductFormProps) => {
       setTags([]);
       setTagInput("");
       setInStock(true);
+      setStock(0);
+      setMinStock(5);
     }
   };
 
@@ -133,6 +139,32 @@ const ProductForm = ({ onSubmit, initialProduct }: ProductFormProps) => {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(parseInt(e.target.value) || 0)}
+                placeholder="0"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="minStock">Minimum Stock Alert</Label>
+              <Input
+                id="minStock"
+                type="number"
+                min="0"
+                value={minStock}
+                onChange={(e) => setMinStock(parseInt(e.target.value) || 0)}
+                placeholder="5"
+              />
+            </div>
+          </div>
+
           <div className="space-y-4">
             <Label>Tags</Label>
             <div className="flex gap-2">
@@ -156,15 +188,6 @@ const ProductForm = ({ onSubmit, initialProduct }: ProductFormProps) => {
                 </Badge>
               ))}
             </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="inStock"
-              checked={inStock}
-              onCheckedChange={setInStock}
-            />
-            <Label htmlFor="inStock">In Stock</Label>
           </div>
 
           <Button type="submit" className="w-full">

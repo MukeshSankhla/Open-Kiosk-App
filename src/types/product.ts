@@ -8,6 +8,8 @@ export interface Product {
   tags: string[];
   inStock: boolean;
   category: string;
+  stock: number;
+  minStock?: number;
 }
 
 export interface CartItem {

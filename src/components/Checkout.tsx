@@ -7,6 +7,7 @@ import { ArrowLeft, Receipt, QrCode, Printer, Check, CreditCard, Wifi } from "lu
 import { CartItem } from "@/types/product";
 import { useCurrentCurrency } from "@/hooks/useSettings";
 import { useStoreSettings } from "@/hooks/useStoreSettings";
+import { useFirebaseProducts } from "@/hooks/useFirebaseProducts";
 import { esp32Printer } from "@/services/esp32PrinterService";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebaseReports } from "@/hooks/useFirebaseReports";
@@ -32,6 +33,7 @@ const Checkout = ({ isOpen, onClose, cartItems, onUpdateQuantity, onClearCart, o
   const { settings } = useStoreSettings();
   const { toast } = useToast();
   const { recordSale, generateOrderNumber } = useFirebaseReports();
+  const { updateProduct } = useFirebaseProducts();
 
   // Generate order number when component mounts and keep it consistent
   useEffect(() => {
@@ -82,20 +84,32 @@ const Checkout = ({ isOpen, onClose, cartItems, onUpdateQuantity, onClearCart, o
     setPaymentProcessed(true);
     
     try {
-      // Use the existing order number instead of generating a new one
+      // Record the sale first
       await recordSale(cartItems, getFinalTotal(), currentCurrency.code, orderNumber);
       console.log('Sale recorded with order number:', orderNumber);
+
+      // Update stock for each item in the cart
+      for (const item of cartItems) {
+        const newStock = Math.max(0, (item.product.stock || 0) - item.quantity);
+        await updateProduct(item.product.id, {
+          ...item.product,
+          stock: newStock,
+          inStock: newStock > 0
+        });
+        console.log(`Updated stock for ${item.product.title}: ${newStock}`);
+      }
+
     } catch (error) {
-      console.error('Error recording sale:', error);
+      console.error('Error processing order:', error);
       toast({
         title: "Error",
-        description: "Failed to record sale",
+        description: "Failed to process order",
         variant: "destructive"
       });
       return;
     }
 
-    // Clear the cart immediately after successful payment
+    // Clear the cart immediately after successful payment and stock update
     onClearCart();
     
     // Show completion screen

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
@@ -14,20 +13,43 @@ import { CartItem, Product } from "@/types/product";
 import { useFirebaseProducts } from "@/hooks/useFirebaseProducts";
 import { useSettings } from "@/hooks/useSettings";
 
+const INITIAL_LOAD_LIMIT = 50;
+
 const Shop = () => {
   const navigate = useNavigate();
-  const { products, loading } = useFirebaseProducts();
+  const { products, loading, updateProduct } = useFirebaseProducts();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
+  const [displayLimit, setDisplayLimit] = useState(INITIAL_LOAD_LIMIT);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const { currentCurrency } = useSettings();
 
   useEffect(() => {
     if (products) {
-      const filtered = products.filter(product =>
+      // Sort products by most sold (assuming we track sales in a field like 'salesCount')
+      // For now, we'll sort by stock level as a proxy (lower stock = more sold)
+      const sortedByMostSold = [...products].sort((a, b) => {
+        // Products with lower stock are considered "more sold"
+        const stockA = a.stock || 0;
+        const stockB = b.stock || 0;
+        
+        // If both have stock, sort by lowest stock first (most sold)
+        if (stockA > 0 && stockB > 0) {
+          return stockA - stockB;
+        }
+        
+        // In-stock items come before out-of-stock
+        if (stockA > 0 && stockB === 0) return -1;
+        if (stockA === 0 && stockB > 0) return 1;
+        
+        return 0;
+      });
+
+      const filtered = sortedByMostSold.filter(product =>
         product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -36,15 +58,35 @@ const Shop = () => {
     }
   }, [products, searchQuery]);
 
-  const addToCart = (product: Product) => {
+  useEffect(() => {
+    setDisplayedProducts(filteredProducts.slice(0, displayLimit));
+  }, [filteredProducts, displayLimit]);
+
+  const loadMore = () => {
+    setDisplayLimit(prev => prev + 50);
+  };
+
+  const hasMoreProducts = displayLimit < filteredProducts.length;
+
+  const addToCart = async (product: Product) => {
+    // Check if product has sufficient stock
+    if ((product.stock || 0) <= 0) {
+      return; // Product is out of stock
+    }
+
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.product.id === product.id);
       if (existingItem) {
-        return prevItems.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+        // Check if we can add more (don't exceed available stock)
+        const newQuantity = existingItem.quantity + 1;
+        if (newQuantity <= (product.stock || 0)) {
+          return prevItems.map(item =>
+            item.product.id === product.id
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
+        }
+        return prevItems; // Don't add if would exceed stock
       } else {
         return [...prevItems, { product, quantity: 1 }];
       }
@@ -56,9 +98,15 @@ const Shop = () => {
       setCartItems(prevItems => prevItems.filter(item => item.product.id !== productId));
     } else {
       setCartItems(prevItems =>
-        prevItems.map(item =>
-          item.product.id === productId ? { ...item, quantity } : item
-        )
+        prevItems.map(item => {
+          if (item.product.id === productId) {
+            // Don't allow quantity to exceed stock
+            const maxQuantity = item.product.stock || 0;
+            const finalQuantity = Math.min(quantity, maxQuantity);
+            return { ...item, quantity: finalQuantity };
+          }
+          return item;
+        })
       );
     }
   };
@@ -141,7 +189,7 @@ const Shop = () => {
       {/* Products with improved image sizing */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {filteredProducts.map((product) => (
+          {displayedProducts.map((product) => (
             <Card key={product.id} className="h-full">
               <CardContent className="p-4">
                 <div className="space-y-3">
@@ -165,24 +213,38 @@ const Shop = () => {
                       <span className="font-medium text-green-600 text-sm">
                         {currentCurrency.symbol}{product.price.toFixed(2)}
                       </span>
-                      <Badge variant={product.inStock ? "default" : "destructive"} className="text-xs">
-                        {product.inStock ? "In Stock" : "Out of Stock"}
+                      <Badge variant={(product.stock || 0) > 0 ? "default" : "destructive"} className="text-xs">
+                        {(product.stock || 0) > 0 ? `${product.stock} in stock` : "Out of Stock"}
                       </Badge>
                     </div>
                   </div>
                   
                   <Button
                     onClick={() => addToCart(product)}
-                    disabled={!product.inStock}
+                    disabled={(product.stock || 0) <= 0}
                     className="w-full text-sm py-2"
                     size="sm"
                   >
-                    Add to Cart
+                    {(product.stock || 0) <= 0 ? "Out of Stock" : "Add to Cart"}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Show More Button */}
+        {hasMoreProducts && (
+          <div className="flex justify-center mt-8">
+            <Button onClick={loadMore} variant="outline" size="lg">
+              Show More Products ({filteredProducts.length - displayLimit} remaining)
+            </Button>
+          </div>
+        )}
+
+        {/* Results Info */}
+        <div className="text-center mt-4 text-gray-500 text-sm">
+          Showing {displayedProducts.length} of {filteredProducts.length} products
         </div>
       </div>
 
